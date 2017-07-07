@@ -1,0 +1,14 @@
+desc "Install fonts"
+task :install_font  do
+    sh "asciidoctor-pdf-cjk-kai_gen_gothic"
+end
+
+desc "Generate html5 format"
+task :ghtml do
+    sh "asciidoctor -r asciidoctor-diagram index.adoc"
+end
+
+desc "Generate pdf format"
+task :gpdf do
+    sh "asciidoctor-pdf -r asciidoctor-diagram -r asciidoctor-pdf-cjk-kai_gen_gothic -a pdf-style=KaiGenGothicTW index.adoc"
+end

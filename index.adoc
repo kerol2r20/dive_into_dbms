@@ -1,0 +1,131 @@
+= Database Management System
+Yu-Hsin Lu <kerol2r20@gmail.com>
+:toc:
+:numbered:
+:icons: font
+:stem:
+:imagesdir: ./images
+:imagesoutdir: ./images
+
+== 資料庫的基本介紹
+
+廣義上來說，能夠儲存資料的媒介都算是資料庫，包含我們實體上的書本，筆記，甚至我們的人腦就是一個資料庫，因為這些東西都能夠幫助我們**持久性**的保存一些知識。在電腦中的世界也是如此，但是比起書本，電腦能夠更加方便的幫我們將資料進行歸檔，方便我們查找，再者電腦能夠在極度微小的空間中儲存超級大量的資料。有了這些好處，所以電腦成為了資料庫的熱門媒介。而我們要討論的DBMS footnoteref:[DBMS, Database Management System 資料庫管理系統] 是一種針對資料處理進行特化，讓我們能夠在操作資料上更有效率的一種程式，它另一個重要的特色是能夠將這種操作帶進我們所寫的程式中，這個特點讓我們在編寫程式的時候能夠不用去在意資料存取這種低階層的工作，專注在我們所要寫的功能上。
+
+一開始的時候我們會談到如何設計一個好的資料庫，接下來會講到如何實際去操作建立出我們設計的資料庫，最後一部分會講解DBMS的設計原則，以及他高效率的設計方式。
+
+=== 揮發性
+
+想一下這個問題，我們有兩個檔案，Assign.py與Use.py
+
+[source, python]
+.Assign.py
+----
+x = "Hello world"
+----
+
+[source, python]
+.Use.py
+----
+print(x)
+----
+
+當我分別依序去執行Assign.py與Use.py時，我們預期他會顯示Hello world，但是會發生什麼事？ +
+結果是，當我在執行Use.py時，他會發生錯誤``NameError: name 'x' is not defined``，原因很簡單，當我執行完Assign.py時，變數``x``就已經被釋放掉了，當我再執行Use.py理所當然會出錯。那該如何解決這個問題呢？
+
+我們可能會想要將``x``儲存進某個檔案，例如``x.txt``等到Use.py使用變數之前再先進行讀檔的動作，最後再print出來。
+
+[source, python]
+.Assign.py
+----
+x = "Hello world"
+file = open('x.txt', 'w') # <1>
+file.write(x)
+file.close() # <2>
+----
+<1> open函式的第一個變數是檔名，第二個變數是模式，我們現在要進行寫入，所以使用``w``模式。
+<2> 操作檔案時最後必須要將檔案關閉，如此才會真的將結果寫入檔案，並且將記憶體釋放掉，這點很常被遺忘。
+
+[source, python]
+.Use.py
+----
+file = open('x.txt', 'r')
+x = file.read()
+file.close()
+print(x)
+----
+
+TIP: 程式執行期間會將程式所有內容都遷移到主記憶體中，假如沒有特別指定要儲存，則程式關閉時所有的資訊都會揮發掉
+
+=== 序列化(Serialization)與反序列化(Deserialization)
+
+上一節提到的，我們可以將我們的程式所需要**持久性**使用的部分，使用檔案的方式給儲存下來，等到我們要用的時候再將他拿出來，放進程式裡面使用。這兩個流程就是**序列化**以及**反序列化**。
+
+* Serialization: 將程式的資料結構轉換成為檔案的流程。
+* Deserialization: 將從檔案轉換為程式中資料結構的流程。
+
+[.text-center]
+image::Serialization.png[Serialization, 500]
+
+WARNING: 這裡統稱**檔案**其實是不精確的，理論上來說應該是binary，因為電腦中的資料就是由一堆binary組成。
+
+=== 序列化後的格式
+
+首先要知道一件事，電腦中的檔案不是純文字檔(Plain text)就是二進制檔(binary file)。剛剛的示範中將變數儲存到一個純文字檔中，其實那個文字檔就是一個資料庫，只是它儲存的資料內容很簡單，而且我們沒有需要對它進行複雜的操作footnoteref:[manipulate, 複雜的操作，例如：查詢、插入、刪除、排序......]，所以一切看起來都還很安好。那假如現在的資料再複雜一點
+
+[width="50%"]
+|===
+|name|age|sex
+
+|John | 20 | male
+|Mary | 12 | female
+|Eric | 25 | male
+|===
+
+那如何儲存進一個檔案中就是值得討論的一件事了，我們當然可以自己設計很多種儲存方式，但是前人已經幫我們思考過這個問題了，提出了很多方案，例如``csv``、``xml``、``json``之類的，我們使用``csv``當做範例。
+
+[source, csv]
+.csv儲存範例
+----
+name,age,sex
+John,20,male
+Mary,12,female
+Eric,25,male
+----
+
+到這裡為止只討論到了**儲存**這件事，但是更多的麻煩等著我們去處理，例如該如何進行篩選，刪除，排序......這些複雜的問題我們都還沒有去克服，假如每次寫程式前就必須要解決這些問題，那我們何時才能解決我們的核心功能呢？
+
+CAUTION: 並不是xml以及json這些格式並不重要，在很多的場合上我們不需要使用到DBMS這麼複雜的功能時，使用這些序列化的解決方法反而提供我們一個很好的想法去儲存我們的構思。
+
+=== DBMS
+
+因為前面提到的種種麻煩，資料庫系統就因應而生了，DBMS提供了一個良好的界面，讓我們透過簡單的指令(SQL)就能夠將資料良好的保存下來，並且在那之後提供完整的操作手段，讓我們能夠在寫程式的時候不需要再去處理複雜的資料問題，專注在我們該寫的功能上頭。
+
+== 如何設計Database
+
+stem:[sqrt(4) = 2]
+
+[graphviz, graph/test, svg]
+----
+graph ER {
+	node [shape=box]; course; institute; student;
+	node [shape=ellipse]; {node [label="name"] name0; name1; name2;}
+		code; grade; number;
+	node [shape=diamond,style=filled,color=lightgrey]; "C-I"; "S-C"; "S-I";
+
+	name0 -- course;
+	code -- course;
+	course -- "C-I" [label="n",len=1.00];
+	"C-I" -- institute [label="1",len=1.00];
+	institute -- name1;
+	institute -- "S-I" [label="1",len=1.00];
+	"S-I" -- student [label="n",len=1.00];
+	student -- grade;
+	student -- name2;
+	student -- number;
+	student -- "S-C" [label="m",len=1.00];
+	"S-C" -- course [label="n",len=1.00];
+
+	label = "\n\nEntity Relation Diagram\ndrawn by NEATO";
+	fontsize=20;
+}
+----
