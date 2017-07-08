@@ -3,7 +3,7 @@ Yu-Hsin Lu <kerol2r20@gmail.com>
 :toc:
 :numbered:
 :icons: font
-:stem:
+:stem: latexmath
 :imagesdir: ./images
 :imagesoutdir: ./images
 
@@ -101,31 +101,3 @@ CAUTION: 並不是xml以及json這些格式並不重要，在很多的場合上�
 因為前面提到的種種麻煩，資料庫系統就因應而生了，DBMS提供了一個良好的界面，讓我們透過簡單的指令(SQL)就能夠將資料良好的保存下來，並且在那之後提供完整的操作手段，讓我們能夠在寫程式的時候不需要再去處理複雜的資料問題，專注在我們該寫的功能上頭。
 
 == 如何設計Database
-
-stem:[sqrt(4) = 2]
-
-[graphviz, graph/test, svg]
-----
-graph ER {
-	node [shape=box]; course; institute; student;
-	node [shape=ellipse]; {node [label="name"] name0; name1; name2;}
-		code; grade; number;
-	node [shape=diamond,style=filled,color=lightgrey]; "C-I"; "S-C"; "S-I";
-
-	name0 -- course;
-	code -- course;
-	course -- "C-I" [label="n",len=1.00];
-	"C-I" -- institute [label="1",len=1.00];
-	institute -- name1;
-	institute -- "S-I" [label="1",len=1.00];
-	"S-I" -- student [label="n",len=1.00];
-	student -- grade;
-	student -- name2;
-	student -- number;
-	student -- "S-C" [label="m",len=1.00];
-	"S-C" -- course [label="n",len=1.00];
-
-	label = "\n\nEntity Relation Diagram\ndrawn by NEATO";
-	fontsize=20;
-}
-----
