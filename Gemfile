@@ -14,3 +14,6 @@ gem "asciidoctor-pdf-cjk-kai_gen_gothic", "~> 0.1.1"
 
 # Added at 2017-07-07 16:11:20 +0800 by desktop-42uvs3e\king:
 gem "asciidoctor-diagram", "~> 1.5"
+
+# Added at 2017-07-08 16:25:52 +0000 by root:
+gem "asciidoctor-mathematical", "~> 0.2.2"
