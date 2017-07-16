@@ -63,7 +63,6 @@ TIP: 程式執行期間會將程式所有內容都遷移到主記憶體中，假
 * Serialization: 將程式的資料結構轉換成為檔案的流程。
 * Deserialization: 將從檔案轉換為程式中資料結構的流程。
 
-[#img]
 [.text-center]
 .序列化關係圖
 image::Serialization.png[Serialization, 500]
@@ -113,8 +112,6 @@ xml檔=>Database +
 欄位=>Field +
 資料=>Record
 
-
-[#img]
 .架構圖
 image::db_architecture.svg[Architecture]
 
@@ -124,10 +121,13 @@ image::db_architecture.svg[Architecture]
 
 相信大家一定都同意一件事，比起生澀的文字描述，圖表的呈現更能幫助我們進行表達。我們不能期待每個人都是資料庫方面的專家，他們不懂得資料庫的操作語法，以及實作的細節，那如何讓其他領域的人快速看懂整個資料庫的設計架構是十分重要的事情。因此電腦科學家**陳品山**發明了ER-diagram，透過ER-diagram我們可以用清晰易懂的圖像表達我們整個資料庫，讓老闆、客戶、同事等等不同領域的人能夠一起討論資料庫的設計，減少溝通失誤的機會。
 
+
 ==== Entity (實體)
-Entity表示一個離散的物件，我們可以把它比擬成詞性中的名詞，通常來說定義成Entity的物件很難再被分割，因此它代表一個獨立的概念，例如：學生、教室、課程。在ER-diagram中，我們用方形代表一個Entity。
+Entity表示一個離散的物件，通常來說定義成Entity的物件很難再被分割，因此它代表一個獨立的概念，例如：學生、教室、課程。在ER-diagram中， +
+我們用**方形**代表一個Entity。
 
 [plantuml, graph/entity_sample, svg]
+.Entity
 ----
 @startdot
 graph ER {
@@ -142,3 +142,156 @@ graph ER {
 ----
 
 ==== Attributes (屬性)
+Attributes 的功能是用來描述 Entity 或者 Relationship ，一個 Entity 可以擁有許多 Attributes ，屬性之下還可以有複和屬性(Composite attributes)，而相同的 Entity 都會具有這些 Attributes。例如：學生會有學號，姓名，身高，體重等等的屬性，而 A 學生有這些屬性， B 學生應該也需要有這些屬性，但是他們內涵的值可以不同，A 學生的學號就不該和 B 學生的相同，否則就分不清誰是誰了。 +
+在 ER-diagram 中，Attributes 的形狀是**橢圓形**。
+
+[plantuml, graph/attribute_sample, svg]
+.Attributes
+----
+@startdot
+graph ER {
+	Student [shape=box];
+    Student -- ID;
+    Student -- name;
+    Student -- height;
+    Student -- weight;
+}
+@enddot
+----
+
+[plantuml, graph/Composite_attribute_sample, svg]
+.複和屬性
+----
+@startdot
+graph ER {
+	Student [shape=box];
+    Student -- ID;
+    Student -- name;
+    Student -- height;
+    Student -- weight;
+    name -- firstname;
+    name -- lastname;
+}
+@enddot
+----
+
+==== Relationship (關係)
+Relation 代表兩個實體間的關係 footnote:[結合性(Association)]，而 Relationship 我們又會細分成是一對一(one-to-one)，一對多(one-to-more)，多對一(more-to-one)，或者是多對多(more-to-more)的關係，處理資料時我們十分不希望看到的是一個多對多的關係，因為他相較於其他三者多對多更難處理。 +
+在 ER-diagram 中，Relationship 的形狀是**菱形**，並且我們會在 Relationship 的關係線上加上此兩者的對應關係為何。
+
+TIP: 一對一 => 1..1 +
+一對多 => 1..N +
+多對多 => M..N
+
+[plantuml, graph/Relationship_sample, svg]
+.Relationship: 一個學生可以註冊多堂課，一個老師也可以教授多堂課。
+----
+@startdot
+graph ER {
+	Student [shape=box];
+    Teacher [shape=box];
+    Course [shape=box];
+    Teaching [shape=diamond];
+    Regist [shape=diamond];
+    Student -- Regist[label="1"]; Course -- Regist[label="N"];
+    Teacher -- Teaching[label="1"]; Course -- Teaching[label="N"];
+}
+@enddot
+----
+
+===== Total Participation & Partial Participatio
+我們接下來還會探討Relation之間的Participation問題，所謂Total Participation所代表的意思就是這個Relationship中Entity必須全部都有參與其中，而Partial Participatio則是部分參與其中就可以了。舉個例子：學生以及老師之間有著**導生**之間的關係，每個學生都一定有個導師，但是可能有些老師沒有導生，因此對於**導生**這個Relationship，學生是Total Participation，而老師則是Partial Participatio。 +
+我們會用**粗線**來代表Total Participation，普通線條代表Partial Participatio。
+
+[plantuml, graph/Participation_sample, svg]
+.Participation
+----
+@startdot
+graph ER {
+	Student [shape=box];
+    Teacher [shape=box];
+    Tutor [shape=diamond];
+    Student -- Tutor [penwidth=5, color="red"];
+    Teacher -- Tutor;
+}
+@enddot
+----
+
+TIP: Entity、Attributes、Relationship是ER-diagram中最重要的三大元素
+
+==== Key (鍵)
+
+===== Primary key (主鍵)
+在定義好 Entity 之後，最重要的事情就是要定義每一個 Entity 的 Key ，我們會選某個重要的 Attribute 來當做Key ，所以 Key 的特癥就是，他必須要在是這個 Entity 獨一無二的存在，以上面的學生當成例子， 最好的 Key 選擇就是 ID ，你可能會認為 Name 也可以拿來當做 Key ，在大部分的情況下是如此的沒錯，但是誰能保證不會有同名同姓的人出現呢？ 我們的身份證字號就是一個 Key ，絕對不會有兩個人的身份字號完全相同。 有些情況一張表可能有多種 Key ，我們稱最主要的 Key 叫做 **Primary key** 。 +
+在 ER-diagram 中，會在 Primary key 的屬性下面加上**底線**或者特殊標記。
+
+[plantuml, graph/attribute_sample, svg]
+.Attributes
+----
+@startdot
+graph ER {
+	Student [shape=box];
+    ID[color="red"];
+    Student -- ID;
+    Student -- name;
+    Student -- height;
+    Student -- weight;
+}
+@enddot
+----
+
+===== Foreign key (外來鍵)
+另一種常用的 Key 是 **Foreign key** ， Foreign key是另一個Entity的 Primary Key ， 主要的用途是拿來做限制用的，限制某個欄位只能使用哪些值。這麼講可能很抽象，舉個例子：某一堂課必須要由某位老師來進行教學，因此老師 ID 就是一個Foreign key，當我嘗試在TeacherID填入一個不存在的值時，資料庫就會寫入失敗。
+
+[plantuml, graph/fk_sample, svg]
+.Foreign key: TeacherID就是Course的一個Foreign key
+----
+@startdot
+graph ER {
+	Course [shape=box];
+    Teacher [shape=box];
+    CourseID [color="red"];
+    TeacherID [color="green"];
+    Teaching [shape=diamond];
+    Course -- CourseID;
+    Course -- TeacherID;
+    ID [color="red"];
+    Teacher -- ID;
+    Teacher -- Name;
+    Course -- Teaching;
+    Teacher -- Teaching;
+}
+@enddot
+----
+
+==== Weak Entity (弱實體)
+弱實體之所以弱，是因為他沒有一個 Primary key 來定位他的位置，他必須使用另一個 Entity 來幫他找定位，這種 Entity 就稱為弱實體。舉個例子： 我們有個訂單實體(Order)，存放某一筆訂單的總體資料，詳細的細項我們則會放在另一個訂單項目(OrderItems)的實體中。
+
+[width="50%"]
+.Orders
+|===
+|OrderID|Manufacturers|Due
+
+|1 | Shop A | 10/10
+|2 | Shop B | 9/8
+|===
+
+[width="50%"]
+.OrderItems
+|===
+|OrderID|Item|Quantity
+
+|1 | Cola | 60
+|1 | Sprite | 45
+|1 | Fanta | 70
+|2 | Sprite | 10
+|2 | Fanta | 30
+|===
+
+由這個例子我們可以知道OrderItems並沒有屬於自己的一個 Primary key ，OrderItems必須依據 Orders 提供給他 Foreign key 來找出定位自己的資料，因此 OrderItems 是一個Weak Entiry。 +
+ER-diagram中，我們用**雙方框**來表示 Weak Entity ，而Weak Entiry與相對應配對的Entity之間必須要由一個**雙菱形**的Weak Relationship關係。
+
+.WeakEntity
+image::WeakEntity_sample.svg[]
+
+WARNING: Weak Entity的概念比較抽象，超級容易在面試或是考試的時候被當做考題，因為這是判斷一個人是純粹**會用**資料庫還是有**了解**資料庫概念的一個重要依據。
