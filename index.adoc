@@ -225,44 +225,14 @@ TIP: Entity、Attributes、Relationship是ER-diagram中最重要的三大元素
 在定義好 Entity 之後，最重要的事情就是要定義每一個 Entity 的 Key ，我們會選某個重要的 Attribute 來當做Key ，所以 Key 的特癥就是，他必須要在是這個 Entity 獨一無二的存在，以上面的學生當成例子， 最好的 Key 選擇就是 ID ，你可能會認為 Name 也可以拿來當做 Key ，在大部分的情況下是如此的沒錯，但是誰能保證不會有同名同姓的人出現呢？ 我們的身份證字號就是一個 Key ，絕對不會有兩個人的身份字號完全相同。 有些情況一張表可能有多種 Key ，我們稱最主要的 Key 叫做 **Primary key** 。 +
 在 ER-diagram 中，會在 Primary key 的屬性下面加上**底線**或者特殊標記。
 
-[plantuml, graph/attribute_sample, svg]
-.Attributes
-----
-@startdot
-graph ER {
-	Student [shape=box];
-    ID[color="red"];
-    Student -- ID;
-    Student -- name;
-    Student -- height;
-    Student -- weight;
-}
-@enddot
-----
+.Primary key
+image::pr_sample.svg[]
 
 ===== Foreign key (外來鍵)
 另一種常用的 Key 是 **Foreign key** ， Foreign key是另一個Entity的 Primary Key ， 主要的用途是拿來做限制用的，限制某個欄位只能使用哪些值。這麼講可能很抽象，舉個例子：某一堂課必須要由某位老師來進行教學，因此老師 ID 就是一個Foreign key，當我嘗試在TeacherID填入一個不存在的值時，資料庫就會寫入失敗。
 
-[plantuml, graph/fk_sample, svg]
-.Foreign key: TeacherID就是Course的一個Foreign key
-----
-@startdot
-graph ER {
-	Course [shape=box];
-    Teacher [shape=box];
-    CourseID [color="red"];
-    TeacherID [color="green"];
-    Teaching [shape=diamond];
-    Course -- CourseID;
-    Course -- TeacherID;
-    ID [color="red"];
-    Teacher -- ID;
-    Teacher -- Name;
-    Course -- Teaching;
-    Teacher -- Teaching;
-}
-@enddot
-----
+.Foreign key
+image::fr_sample.svg[]
 
 ==== Weak Entity (弱實體)
 弱實體之所以弱，是因為他沒有一個 Primary key 來定位他的位置，他必須使用另一個 Entity 來幫他找定位，這種 Entity 就稱為弱實體。舉個例子： 我們有個訂單實體(Order)，存放某一筆訂單的總體資料，詳細的細項我們則會放在另一個訂單項目(OrderItems)的實體中。
@@ -295,3 +265,6 @@ ER-diagram中，我們用**雙方框**來表示 Weak Entity ，而Weak Entiry與
 image::WeakEntity_sample.svg[]
 
 WARNING: Weak Entity的概念比較抽象，超級容易在面試或是考試的時候被當做考題，因為這是判斷一個人是純粹**會用**資料庫還是有**了解**資料庫概念的一個重要依據。
+
+=== 實作 ER-diagram
+
